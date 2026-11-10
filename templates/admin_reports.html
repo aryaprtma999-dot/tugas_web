@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% set admin_tab = 'reports' %}
+{% block title %}Laporan peminjaman · IDB Bali{% endblock %}
+
+{% block content %}
+<section class="page-head page-head-admin">
+  <div class="container">
+    <span class="section-kicker">Ruang kerja Sarpras</span>
+    <div class="page-head-row">
+      <div>
+        <h1>Laporan peminjaman</h1>
+        <p>Rekap status, utilisasi ruang, tren bulanan, dan pemohon paling aktif. Unduh CSV untuk pengolahan lanjutan.</p>
+      </div>
+      <a class="btn btn-accent btn-sm" href="{{ url_for('main.admin_reports_csv') }}">Unduh CSV</a>
+    </div>
+    {% include "_admin_tabs.html" %}
+  </div>
+</section>
+
+<section class="container dashboard-body">
+  <div class="stat-grid stat-grid-5">
+    <div class="stat-card stat-highlight">
+      <span class="stat-label">Total permintaan</span>
+      <strong>{{ report.total }}</strong>
+      <span class="stat-note">seluruh status</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Terkonfirmasi</span>
+      <strong>{{ report.confirmed }}</strong>
+      <span class="stat-note">alokasi aktif</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Menunggu</span>
+      <strong>{{ report.processing }}</strong>
+      <span class="stat-note">perlu verifikasi</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Gagal / konflik</span>
+      <strong>{{ report.failed }}</strong>
+      <span class="stat-note">tercatat untuk audit</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Dibatalkan</span>
+      <strong>{{ report.cancelled }}</strong>
+      <span class="stat-note">slot kembali terbuka</span>
+    </div>
+  </div>
+
+  <div class="report-grid">
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <span class="section-kicker">Utilisasi</span>
+          <h2>Permintaan per ruang</h2>
+        </div>
+        <span class="muted-note">Semua status</span>
+      </div>
+      {% set max_room = (report.per_room|map(attribute='total')|max) or 1 %}
+      <div class="report-bars">
+        {% for room in report.per_room %}
+          <div class="report-bar-row">
+            <div class="report-bar-label">{{ room.kode }} · {{ room.nama }}<small>{{ room.gedung }}</small></div>
+            <div class="report-bar-track">
+              <div class="report-bar-fill" style="width: {{ (room.total / max_room * 100)|round(1) if room.total else 0 }}%"></div>
+            </div>
+            <div class="report-bar-value">{{ room.total }}</div>
+          </div>
+        {% else %}
+          <p class="muted-note">Belum ada data reservasi.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <span class="section-kicker">Ringkasan</span>
+          <h2>Per gedung</h2>
+        </div>
+      </div>
+      <div class="report-mini-list">
+        {% for b in report.per_building %}
+          <div class="report-mini-row">
+            <span>{{ b.gedung }}</span>
+            <strong>{{ b.total }} <small class="muted">/ {{ b.confirmed }} OK</small></strong>
+          </div>
+        {% endfor %}
+      </div>
+      <div class="panel-head" style="margin-top:1.6rem">
+        <div>
+          <span class="section-kicker">Tren</span>
+          <h2>Enam bulan terakhir</h2>
+        </div>
+      </div>
+      <div class="report-mini-list">
+        {% for m in report.monthly|reverse %}
+          <div class="report-mini-row">
+            <span>{{ m.bulan }}</span>
+            <strong>{{ m.total }} <small class="muted">/ {{ m.confirmed or 0 }} OK</small></strong>
+          </div>
+        {% else %}
+          <p class="muted-note">Belum ada data bulanan.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <div>
+        <span class="section-kicker">Pemohon</span>
+        <h2>Pengguna paling aktif</h2>
+      </div>
+      <span class="muted-note">Berdasarkan jumlah permintaan</span>
+    </div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr><th>Nama</th><th>Peran</th><th>NIM / NIK</th><th>Total permintaan</th></tr>
+        </thead>
+        <tbody>
+          {% for u in report.top_users %}
+            <tr>
+              <td data-label="Nama"><strong>{{ u.nama }}</strong></td>
+              <td data-label="Peran">{{ role_labels[u.role] }}</td>
+              <td data-label="NIM / NIK"><span class="mono">{{ u.nim_nip or '—' }}</span></td>
+              <td data-label="Total"><strong>{{ u.total }}</strong></td>
+            </tr>
+          {% else %}
+            <tr><td colspan="4"><p class="muted-note">Belum ada permintaan tercatat.</p></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+{% endblock %}

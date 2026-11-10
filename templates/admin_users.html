@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% set admin_tab = 'users' %}
+{% block title %}Kelola pengguna · IDB Bali{% endblock %}
+
+{% block content %}
+<section class="page-head page-head-admin">
+  <div class="container">
+    <span class="section-kicker">Ruang kerja Sarpras</span>
+    <div class="page-head-row">
+      <div>
+        <h1>Kelola pengguna</h1>
+        <p>Pantau akun mahasiswa, dosen, dan petugas. Perubahan peran hanya dapat dilakukan Super Admin dan tercatat di audit log.</p>
+      </div>
+      <span class="role-chip">{{ stats.total }} akun terdaftar</span>
+    </div>
+    {% include "_admin_tabs.html" %}
+  </div>
+</section>
+
+<section class="container dashboard-body">
+  <div class="stat-grid">
+    <div class="stat-card stat-highlight">
+      <span class="stat-label">Total akun</span>
+      <strong>{{ stats.total }}</strong>
+      <span class="stat-note">seluruh peran</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Mahasiswa</span>
+      <strong>{{ stats.mahasiswa }}</strong>
+      <span class="stat-note">peminjam utama</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Dosen / staf</span>
+      <strong>{{ stats.dosen }}</strong>
+      <span class="stat-note">peminjam kelas</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Petugas</span>
+      <strong>{{ stats.petugas }}</strong>
+      <span class="stat-note">Sarpras &amp; Super Admin</span>
+    </div>
+  </div>
+
+  <form class="panel filter-bar" method="get" action="{{ url_for('main.admin_users') }}">
+    <label class="field">
+      <span>Cari pengguna</span>
+      <input type="search" name="q" value="{{ filters.q }}" placeholder="Nama, NIM/NIK, email, atau prodi">
+    </label>
+    <label class="field">
+      <span>Peran</span>
+      <select name="role">
+        <option value="">Semua peran</option>
+        {% for key, label in role_labels.items() %}
+          <option value="{{ key }}" {{ 'selected' if filters.role == key }}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <div class="filter-actions">
+      <button class="btn btn-primary btn-sm" type="submit">Terapkan</button>
+      <a class="btn btn-ghost btn-sm" href="{{ url_for('main.admin_users') }}">Reset</a>
+    </div>
+  </form>
+
+  <div class="table-panel">
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Pengguna</th>
+            <th>NIM / NIK</th>
+            <th>Program studi / unit</th>
+            <th>Peran</th>
+            <th>Reservasi</th>
+            <th>Ubah peran</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+            <tr>
+              <td data-label="Pengguna">
+                <div class="user-cell">
+                  <span class="user-avatar">{{ u.nama[0]|upper }}</span>
+                  <div>
+                    <strong>{{ u.nama }}</strong>
+                    <small>{{ u.email }}</small>
+                  </div>
+                </div>
+              </td>
+              <td data-label="NIM / NIK"><span class="mono">{{ u.nim_nip or '—' }}</span></td>
+              <td data-label="Program studi">{{ u.prodi or '—' }}</td>
+              <td data-label="Peran"><span class="badge muted">{{ role_labels[u.role] }}</span></td>
+              <td data-label="Reservasi">
+                <strong>{{ u.total_reservasi }}</strong>
+                <span class="table-sub">{{ u.total_konfirmasi }} terkonfirmasi</span>
+              </td>
+              <td data-label="Ubah peran">
+                {% if current_user.role == 'superadmin' %}
+                  <form class="role-form" method="post" action="{{ url_for('main.admin_update_user_role', user_id=u.id) }}">
+                    <select name="role" aria-label="Peran untuk {{ u.nama }}">
+                      {% for key, label in role_labels.items() %}
+                        <option value="{{ key }}" {{ 'selected' if u.role == key }}>{{ label }}</option>
+                      {% endfor %}
+                    </select>
+                    <button class="btn btn-outline" type="submit">Simpan</button>
+                  </form>
+                {% else %}
+                  <span class="muted-note">Khusus Super Admin</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% else %}
+            <tr><td colspan="6"><p class="muted-note">Tidak ada pengguna yang cocok dengan filter.</p></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+{% endblock %}

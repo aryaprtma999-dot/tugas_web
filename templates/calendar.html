@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Kalender ketersediaan · IDB Bali{% endblock %}
+
+{% block content %}
+<section class="page-head">
+  <div class="container">
+    <span class="section-kicker">Jadwal kampus</span>
+    <div class="page-head-row">
+      <div>
+        <h1>Kalender ketersediaan</h1>
+        <p>Lihat ritme pemakaian ruang per hari. Data pribadi pemesan tidak ditampilkan pada kalender publik.</p>
+      </div>
+      <a class="btn btn-primary btn-sm" href="{{ url_for('main.index', tanggal=first_iso) }}">Cari slot kosong</a>
+    </div>
+  </div>
+</section>
+
+<section class="container dashboard-body">
+  <div class="panel calendar-panel">
+    <div class="calendar-toolbar">
+      <div class="calendar-month">
+        <a class="btn btn-outline btn-sm" href="{{ url_for('main.calendar_view', bulan=prev_month, room=room_id) }}" aria-label="Bulan sebelumnya">←</a>
+        <h2>{{ month_label }}</h2>
+        <a class="btn btn-outline btn-sm" href="{{ url_for('main.calendar_view', bulan=next_month, room=room_id) }}" aria-label="Bulan berikutnya">→</a>
+      </div>
+      <form class="calendar-filter" method="get" action="{{ url_for('main.calendar_view') }}">
+        <input type="hidden" name="bulan" value="{{ first_iso[:7] }}">
+        <label class="field">
+          <span>Filter ruang</span>
+          <select name="room" onchange="this.form.submit()">
+            <option value="">Semua ruang</option>
+            {% for room in rooms %}
+              <option value="{{ room.id }}" {{ 'selected' if room_id == room.id }}>{{ room.kode }} · {{ room.nama }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <noscript><button class="btn btn-primary btn-sm" type="submit">Terapkan</button></noscript>
+        <a class="btn btn-ghost btn-sm" href="{{ url_for('main.calendar_view', bulan=first_iso[:7]) }}">Hari ini</a>
+      </form>
+    </div>
+
+    <div class="calendar-legend">
+      <span><i class="legend-dot confirmed"></i> Terkonfirmasi</span>
+      <span><i class="legend-dot processing"></i> Menunggu verifikasi</span>
+      <span><i class="legend-dot today"></i> Hari ini</span>
+      <span>{{ total_bookings }} reservasi aktif pada tampilan ini</span>
+    </div>
+  </div>
+
+  <div class="panel calendar-panel">
+    <div class="calendar-weekdays" aria-hidden="true">
+      <span>Sen</span><span>Sel</span><span>Rab</span><span>Kam</span><span>Jum</span><span>Sab</span><span>Min</span>
+    </div>
+    <div class="calendar-grid">
+      {% for week in weeks %}
+        {% for day in week %}
+          <a class="calendar-day {{ 'is-outside' if not day.in_month }} {{ 'is-today' if day.is_today }}"
+             href="{{ url_for('main.index', tanggal=day.iso) }}"
+             aria-label="{{ day.iso }} · {{ day.bookings|length }} reservasi aktif">
+            <span class="calendar-day-head">
+              <span class="calendar-day-num">{{ day.day }}</span>
+              {% if day.bookings %}<span class="calendar-count">{{ day.bookings|length }}</span>{% endif %}
+            </span>
+            <span class="calendar-bookings">
+              {% for b in day.bookings[:2] %}
+                <span class="calendar-booking {{ 'is-confirmed' if b.status == 'confirmed' }}">{{ b.mulai }} · {{ b.kode }}</span>
+              {% endfor %}
+              {% if day.bookings|length > 2 %}
+                <span class="calendar-more">+{{ day.bookings|length - 2 }} lagi</span>
+              {% endif %}
+              {% if not day.bookings and day.in_month %}
+                <span class="calendar-empty">Kosong</span>
+              {% endif %}
+            </span>
+          </a>
+        {% endfor %}
+      {% endfor %}
+    </div>
+  </div>
+
+  {% if selected_room %}
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <span class="section-kicker">Ruang terpilih</span>
+          <h2>{{ selected_room.nama }}</h2>
+        </div>
+        <a class="btn btn-primary btn-sm" href="{{ url_for('main.book', room_id=selected_room.id, tanggal=first_iso) }}">Pesan ruang ini</a>
+      </div>
+      <div class="room-photo" style="margin:0 0 1rem;border-radius:14px;height:220px">
+        <img src="{{ room_photo(selected_room.kode) }}" alt="Foto {{ selected_room.nama }} — fasilitas kampus IDB Bali">
+        <span class="room-photo-label">Fasilitas IDB Bali</span>
+      </div>
+      <p class="room-meta"><span>{{ selected_room.gedung }}</span><span>Lantai {{ selected_room.lantai }}</span><span>{{ selected_room.kode }}</span></p>
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

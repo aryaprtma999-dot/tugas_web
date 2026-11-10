@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+node_modules/
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+instance/
+uploads/*
+!uploads/.gitkeep
+.DS_Store
+*.log
+
+idb-bali.zip

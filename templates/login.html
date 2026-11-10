@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Masuk · IDB Bali{% endblock %}
+{% block body_class %}auth-page{% endblock %}
+
+{% block content %}
+<section class="auth-wrap">
+  <div class="container auth-grid">
+    <div class="auth-aside">
+      <div class="auth-brand-lockup">
+        <img src="{{ url_for('static', filename='img/logo-idb.png') }}" alt="Logo resmi Institut Desain & Bisnis Bali">
+        <div>
+          <strong>Sistem Peminjaman Ruangan</strong>
+          <span>Institut Desain &amp; Bisnis Bali</span>
+        </div>
+      </div>
+      <span class="eyebrow eyebrow-light"><span class="pulse-dot"></span> Portal civitas akademika</span>
+      <h1>Satu pintu untuk seluruh ruang kampus.</h1>
+      <p>Masuk dengan NIM atau NIK Anda untuk memesan studio, lab, ruang teori, hingga aula. Status reservasi tampil real-time dan surat peminjaman resmi tersedia setelah disetujui.</p>
+      <ul class="auth-points">
+        <li><span>✓</span> Alokasi slot eksklusif tanpa bentrok</li>
+        <li><span>✓</span> Surat peminjaman PDF siap unduh &amp; cetak</li>
+        <li><span>✓</span> Riwayat dan audit reservasi yang rapi</li>
+      </ul>
+      <div class="auth-quote">
+        <p>“Tidak perlu lagi bertanya berulang kali ke petugas. Slot yang tampil kosong memang bisa dipesan.”</p>
+        <span>Rani — Mahasiswa IDB Bali</span>
+      </div>
+    </div>
+
+    <div class="auth-card">
+      <span class="section-kicker">Masuk</span>
+      <h2>Selamat datang kembali</h2>
+      <p class="auth-sub">Gunakan NIM mahasiswa atau NIK/NIP dosen dan staf. Kata sandi akun demo terdiri dari 4 karakter.</p>
+
+      <form method="post" action="{{ url_for('main.login', next=request.args.get('next')) }}" class="stack-form">
+        <label class="field">
+          <span>NIM / NIK / NIP</span>
+          <input type="text" name="identifier" placeholder="Contoh: 22101001" autocomplete="username" required autofocus>
+        </label>
+        <label class="field">
+          <span>Kata sandi</span>
+          <input type="password" name="password" placeholder="4 karakter" autocomplete="current-password" minlength="4" maxlength="4" required>
+        </label>
+        <button class="btn btn-primary btn-block" type="submit">Masuk ke IDB Bali</button>
+      </form>
+
+      <div class="demo-box">
+        <div class="demo-head">
+          <span>Akun demo</span>
+          <small>Kata sandi: idb1</small>
+        </div>
+        <div class="demo-grid">
+          <button type="button" class="demo-account" data-identifier="22101001" data-password="idb1">
+            <strong>Rani</strong><span>Mahasiswa · 22101001</span>
+          </button>
+          <button type="button" class="demo-account" data-identifier="5101018701250001" data-password="idb1">
+            <strong>Ayu</strong><span>Dosen · NIK</span>
+          </button>
+          <button type="button" class="demo-account" data-identifier="SAR-001" data-password="idb1">
+            <strong>Dedi</strong><span>Sarpras · SAR-001</span>
+          </button>
+          <button type="button" class="demo-account" data-identifier="ADM-000" data-password="idb1">
+            <strong>Admin</strong><span>Super Admin · ADM-000</span>
+          </button>
+        </div>
+      </div>
+
+      <p class="auth-switch">Belum punya akun? <a href="{{ url_for('main.register') }}">Daftar sekarang</a></p>
+    </div>
+  </div>
+</section>
+{% endblock %}
